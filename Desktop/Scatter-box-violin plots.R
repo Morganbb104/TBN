@@ -18,29 +18,29 @@ library(viridis)
 
 scidat<-na.omit(science)
 scidat$like<-scidat$like+rnorm(n = length(scidat$like),mean = mean(scidat$like), sd = sd(scidat$like))
-
+#
 
 fit1<-lme(fixed = like ~ sex + PrivPub ,
           random = ~1|State/school/Class,
           data = scidat)
 summary(fit1)
 
-
+#
 ggplot(data = scidat,aes(x = PrivPub, y = like, fill = sex))+geom_boxplot()
 
-
+#
 ggplot(data = scidat,aes(x = PrivPub, y = like, fill = sex))+
   geom_boxplot()+scale_fill_viridis(discrete=T)+
   theme_pubr()
 
   
-
+#
 ggplot(data = scidat,aes(x = PrivPub, y = like, fill = sex))+
   scale_fill_viridis(discrete=T)+
   geom_violin(alpha=0.25, position = position_dodge(width = .75),size=1,color="black") +
   geom_boxplot(notch = TRUE,  outlier.size = -1, color="black",lwd=1.2, alpha = 0.7)+
   theme_pubr()
-
+#
 ggplot(data = scidat,aes(x = PrivPub, y = like, fill = sex))+
   scale_fill_viridis(discrete=T)+
   geom_violin(alpha=0.4, position = position_dodge(width = .75),size=1,color="black") +
@@ -48,7 +48,7 @@ ggplot(data = scidat,aes(x = PrivPub, y = like, fill = sex))+
   geom_point( shape = 21,size=2, position = position_jitterdodge(), color="black",alpha=1)+
   theme_pubr()
 
-
+#
 ggplot(data = scidat,aes(x = PrivPub, y = like, fill = sex))+
   scale_fill_viridis(discrete=T)+
   geom_violin(alpha=0.4, position = position_dodge(width = .75),size=1,color="black") +
