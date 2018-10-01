@@ -42,6 +42,14 @@ R_bird <-
 View(R_bird)
 names(R_bird)
 
+#coordinate sys exchange https://stackoverflow.com/questions/46664164/r-how-to-transform-epsg-25832-coordinates-into-epsg-4326-ones
+coordinates(d) <- ~c("X","Y")
+proj4string(R_bird) <- CRS("+init=epsg:3826")
+CRS_new <- CRS("+init=epsg:4326")
+R_bird2 <- spTransform(R_bird, CRS_new)
+
+
+
 # select event-related columns for join
 evt_tab_p1 <- R_bird %>% transmute(eventID = eventID,
 #                                   parentEventID = parentEventID,
