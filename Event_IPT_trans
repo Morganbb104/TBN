@@ -1,0 +1,131 @@
+# load packages
+
+library("tidyverse")
+library("data.table")
+
+
+# set workspace
+setwd("c:/Users/user/Desktop/river_side_bird/")
+
+# load raw data
+R_bird <- fread("taipei_riparian_bird.txt",
+                sep = "\t") %>% as.tibble()
+
+names(R_bird)
+
+# add new columns
+R_bird <-
+  R_bird %>% mutate(eventID = paste0(`樣區編號`, "_", `樣點編號`, "_", `調查旅次\n編號`))
+
+R_bird <-
+  R_bird %>% mutate(locationID = paste0(`樣區編號`, "_", `樣點編號`))
+
+R_bird <-
+  R_bird %>% mutate(eventTime = paste0(`開始時間\n（時）`, ":", `開始時間\n（分）`))
+
+R_bird <-
+  R_bird %>% mutate(samplingProtocol = "point count")
+
+R_bird <-
+  R_bird %>% mutate(sampleSizeUnit = "square meter")
+
+R_bird <-
+  R_bird %>% mutate(samplingEffort = "6 observer-minutes")
+
+R_bird <-
+  R_bird %>% mutate(verbatimCoordinateSystem = "EPSG:3826")
+
+R_bird <-
+  R_bird %>% mutate(verbatimLongitude = )
+
+
+View(R_bird)
+names(R_bird)
+
+# select event-related columns for join
+evt_tab_p1 <- R_bird %>% transmute(eventID = eventID,
+#                                   parentEventID = parentEventID,
+                                   site = `樣區編號`,
+                                   locality = `調查樣區`,
+                                   locationID = locationID,
+                                   調查旅次編號 = `調查旅次\n編號`,
+                                   verbatimCoordinateSystem = verbatimCoordinateSystem,
+#                                   verbatimLongitude = ``,
+#                                   verbatimLatitude = ``,
+                                   geodeticDatum =`座標系統`,
+                                   decimalLongitude = X,
+                                   decimalLatitude = Y,
+                                   year = `年`,
+                                   month = `月`,
+                                   day = `日`,
+                                   eventTime = eventTime,
+                                   samplingProtocol = samplingProtocol,
+                                   sampleSizeUnit =sampleSizeUnit,
+                                   samplingEffort =samplingEffort) %>%
+distinct()
+
+
+evt_tab_p2 <-
+  R_bird %>% transmute(eventID = paste0(`樣區編號`, "_", `樣點編號`),
+#                       parentEventID = parentEventID,
+                       site = `樣區編號`,
+                       locality = `調查樣區`,
+                       locationID = locationID,
+                       verbatimCoordinateSystem = verbatimCoordinateSystem,
+#                       verbatimLongitude = ``,
+#                       verbatimLatitude = ``,
+                       geodeticDatum =`座標系統`,
+                       decimalLongitude = X,
+                       decimalLatitude = Y,
+                       year = `年`) %>%
+distinct()
+
+evt_tab_p3 <- 
+  R_bird %>% transmute(eventID = paste0(`樣區編號`),
+                       site = `樣區編號`,
+                       locality = `調查樣區`) %>% 
+distinct()
+
+# make event sheet ----
+# p1 第一階
+temp_evt <- R_bird %>% pull(eventID) %>% unique()
+temp <- gsub("(^.+_.+)_.+$","\\1",temp_evt)
+
+p1_evt <- cbind(temp_evt,temp) %>%
+  as.tibble() %>% rename(eventID = temp_evt,
+                         parentEventID = temp)
+
+p1_evt <- left_join(p1_evt, evt_tab_p1, by = "eventID")
+
+# p2 第二階
+temp_evt <- temp %>% unique()
+temp <- gsub("(^.+)_.+$","\\1",temp_evt)
+
+p2_evt <- cbind(temp_evt,temp) %>%
+  as.tibble() %>% 
+  rename(eventID = temp_evt,
+         parentEventID = temp)
+
+p2_evt <- left_join(p2_evt, evt_tab_p2, by = "eventID")
+
+# p3 第三階
+temp_evt <- temp %>% unique()
+temp <- gsub("^.+$","\\1",temp_evt)
+
+p3_evt <- cbind(temp_evt,temp) %>%
+  as.tibble() %>% 
+  rename(eventID = temp_evt,
+         parentEventID = temp)
+
+p3_evt <- left_join(p3_evt, evt_tab_p3, by = "eventID")
+
+
+evt <- bind_rows(p3_evt,p2_evt,p1_evt)
+
+rm(list = c("temp_evt","temp","p1_evt","p2_evt","p3_evt"))
+
+View(evt)
+
+# output *.xlsx  
+writexl::write_xlsx(x = evt, path = paste0("event_",format(Sys.Date(),"%Y%m%d"),".xlsx"))
+
