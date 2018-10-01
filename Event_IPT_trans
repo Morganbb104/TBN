@@ -22,7 +22,7 @@ R_bird <-
   R_bird %>% mutate(locationID = paste0(`樣區編號`, "_", `樣點編號`))
 
 R_bird <-
-  R_bird %>% mutate(eventTime = paste0(`開始時間\n（時）`, ":", `開始時間\n（分）`))
+  R_bird %>% mutate(eventTime = sprintf("%02i:%02i+0800", R_bird$`開始時間\n（時）`, R_bird$`開始時間\n（分）`))
 
 R_bird <-
   R_bird %>% mutate(samplingProtocol = "point count")
@@ -49,6 +49,10 @@ a <- cbind(R_bird@data, R_bird@coords, R_bird2@coords)
 View(a)
 names(a)[31] <- "verbatimLongitude"
 names(a)[32] <- "verbatimLatitude"
+
+# eventTime
+#$eventTime <- sprintf("%02i:%02i+0800", a$`開始時間（時）`, a$`開始時間（分）`)
+
 
 R_bird <- a
 
@@ -138,6 +142,3 @@ View(evt)
 
 # output *.xlsx  
 writexl::write_xlsx(x = evt, path = paste0("event_",format(Sys.Date(),"%Y%m%d"),".xlsx"))
-
-
-
