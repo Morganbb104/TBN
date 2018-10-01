@@ -1,0 +1,72 @@
+# load packages
+
+library("tidyverse")
+library("data.table")
+
+
+# set workspace
+setwd("c:/Users/user/Desktop/river_side_bird/")
+
+# load raw data
+R_bird <- fread("taipei_riparian_bird.txt",
+                sep = "\t") %>% as.tibble()
+
+names(R_bird)
+
+# data treatment
+R_bird <-
+  R_bird %>% mutate(eventID = paste0(`樣區編號`, "_", `樣點編號`, "_", `調查旅次\n編號`))
+
+R_bird <- R_bird %>% mutate(occ_id = row_number())
+
+R_bird <-
+  R_bird %>% mutate(OccurrenceID = paste0("Occurrence","_",occ_id))
+
+
+
+
+
+
+
+
+# make output form
+# make occurence sheet
+occ <- R_bird %>% transmute(eventID = eventID,
+                            OccurrenceID = OccurrenceID,
+                            vernacularName = `鳥種`,
+                            recordedBy = 調查者,
+                            individualCount = 數量,
+                            occurrenceRemarks = 備註)                    
+
+View(occ)
+#add ScientificName col, check no duplicate 
+list_bird <- fread("te.txt",
+                   sep = "\t") %>% unique
+  
+tt <- list_bird[, .N, by = vernacularName]
+View(tt)
+
+list_keep <- tt[N == 1, vernacularName]
+
+new_list <- list_bird[vernacularName %in% list_keep]
+
+
+
+#occ_2 <- 
+#  new_list[occ, on = "vernacularName"]
+
+occ3 <- left_join(occ,new_list,by = "vernacularName",copy = T)
+View(occ3)
+names(occ3)
+
+occ4 <- occ3 %>% transmute(eventID = eventID,
+                            OccurrenceID = OccurrenceID,
+                            vernacularName = vernacularName,
+                            scientificName = scientificName,
+                            individualCount = individualCount,
+                            recordedBy = recordedBy,
+                            occurrenceRemarks = occurrenceRemarks)    
+
+# output *.xlsx  
+writexl::write_xlsx(x = occ4, path = paste0("occurrance_",format(Sys.Date(),"%Y%m%d"),".xlsx"))
+                    
