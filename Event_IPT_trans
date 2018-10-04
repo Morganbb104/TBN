@@ -36,7 +36,8 @@ R_bird <-
 R_bird <-
   R_bird %>% mutate(verbatimCoordinateSystem = "EPSG:3826")
 
-
+R_bird <-
+  R_bird %>% mutate(geodeticDatum = "EPSG:4236")
 
 #coordinate sys exchange https://stackoverflow.com/questions/46664164/r-how-to-transform-epsg-25832-coordinates-into-epsg-4326-ones
 
@@ -47,8 +48,8 @@ R_bird2 <- spTransform(R_bird, CRS_new)
 
 a <- cbind(R_bird@data, R_bird@coords, R_bird2@coords)
 View(a)
-names(a)[31] <- "verbatimLongitude"
-names(a)[32] <- "verbatimLatitude"
+names(a)[32] <- "verbatimLongitude"
+names(a)[33] <- "verbatimLatitude"
 
 # eventTime
 #$eventTime <- sprintf("%02i:%02i+0800", a$`開始時間（時）`, a$`開始時間（分）`)
@@ -58,7 +59,7 @@ R_bird <- a
 
 # select event-related columns for join
 evt_tab_p1 <- R_bird %>% transmute(eventID = eventID,
-#                                   parentEventID = parentEventID,
+                                   #                                   parentEventID = parentEventID,
                                    site = `樣區編號`,
                                    locality = `調查樣區`,
                                    locationID = locationID,
@@ -66,7 +67,7 @@ evt_tab_p1 <- R_bird %>% transmute(eventID = eventID,
                                    verbatimCoordinateSystem = verbatimCoordinateSystem,
                                    verbatimLongitude = verbatimLongitude,
                                    verbatimLatitude = verbatimLatitude,
-                                   geodeticDatum =`座標系統`,
+                                   geodeticDatum = geodeticDatum,
                                    decimalLongitude = X,
                                    decimalLatitude = Y,
                                    year = `年`,
@@ -81,24 +82,24 @@ distinct()
 
 evt_tab_p2 <-
   R_bird %>% transmute(eventID = paste0(`樣區編號`, "_", `樣點編號`),
-#                       parentEventID = parentEventID,
+                       #                       parentEventID = parentEventID,
                        site = `樣區編號`,
                        locality = `調查樣區`,
                        locationID = locationID,
                        verbatimCoordinateSystem = verbatimCoordinateSystem,
                        verbatimLongitude = verbatimLongitude,
                        verbatimLatitude = verbatimLatitude,
-                       geodeticDatum =`座標系統`,
+                       geodeticDatum = geodeticDatum,
                        decimalLongitude = X,
                        decimalLatitude = Y,
                        year = `年`) %>%
-distinct()
+  distinct()
 
 evt_tab_p3 <- 
   R_bird %>% transmute(eventID = paste0(`樣區編號`),
                        site = `樣區編號`,
                        locality = `調查樣區`) %>% 
-distinct()
+  distinct()
 
 # make event sheet ----
 # p1 第一階
