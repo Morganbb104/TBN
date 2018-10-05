@@ -1,0 +1,71 @@
+# load packages
+
+library(tidyverse)
+library(data.table)
+library(magrittr)
+library(reshape2)
+
+
+# set workspace
+setwd("c:/Users/user/Desktop/EVENT_OCC/")
+
+# load raw data
+R_bird <- fread("taipei_riparian_bird.txt",
+                sep = "\t") %>% as.tibble()
+
+names(R_bird)
+
+# add new columns
+parenteventID
+
+
+R_bird <-
+  R_bird %>% mutate(eventID = paste0(`樣區編號`, "_", `樣點編號`, "_", `調查旅次\n編號`))
+
+R_bird <-
+  R_bird %>% mutate(parenteventID = paste0(`樣區編號`, "_", `樣點編號`, "_", `調查旅次\n編號`))
+
+R_bird <- R_bird %>% mutate(occ_id = row_number())
+
+R_bird <-
+  R_bird %>% mutate(OccurrenceID = paste0("Occurrence","_",occ_id))
+
+R_bird <-
+  R_bird %>% mutate(measurementType = '測量對象')
+R_bird <-
+  R_bird %>% mutate(measurementValue = '測量對象')
+
+# make output form
+# make occurence sheet
+occ1 <- R_bird %>% transmute(eventID.new = paste(eventID, OccurrenceID, sep = "_"),
+                             parenteventID = paste(eventID, OccurrenceID, sep = "_"),
+                             距離 = 距離,
+                             時段 = 時段,
+                             量測對象 = OccurrenceID
+)     
+
+
+# View(occ1)
+# class(t(occ1))
+# occ1_df <- as.data.frame(t(occ1), stringsAsFactors = FALSE)
+# str(occ1_df)
+# names(occ1_df) <- occ1_df[1,]
+# row.names()
+
+occ.v2 <- 
+  melt(occ1, 
+       id = c("eventID.new"),
+       measure = c("距離", 
+                   "時段",
+                   "量測對象")
+  ) %>% 
+  setnames(c("variable", "value"),
+           c("measurmentType", "measurementValue"))
+
+occ.v2 <- occ.v2 %>% mutate(mea_id = row_number())
+
+occ.v2 <-
+  occ.v2 %>% mutate(measurementID = paste0("measurement","_",mea_id))
+
+View(occ.v2)
+
