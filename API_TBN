@@ -1,0 +1,38 @@
+
+library(readxl)
+library(magrittr)
+library(httr)
+library(jsonlite)
+
+setwd("c:/Users/user/Desktop/黃智南/")
+#pages = c(217011,9,19)
+pages <- 
+  read_xlsx("tbnid_list.xlsx") %>% 
+  .$nid
+query = ''    # keyword for query
+url = paste('https://www.tbn.org.tw/api/v1/occurrence?tbnId=', 
+            paste(query, paste(pages, sep=''), sep=''),  
+            sep='')
+
+apikey <- "a960868f-31d9-ad48-53b3-13ddb2600f9f"
+
+start.time <- Sys.time()
+
+content <- list()
+for (i in 1:length(pages)){
+  raw.result <- 
+    GET(url = url[i],
+        query = list(apikey=apikey))
+  content[[i]] <- 
+    rawToChar(raw.result$content) %>% 
+    fromJSON %>% 
+    do.call(cbind, .)
+}
+
+content %<>% do.call(rbind, .)
+
+View(content)
+writexl::write_xlsx(x = content, path = paste0("crab_",format(Sys.Date(),"%Y%m%d"),".xlsx"))
+
+time.taken <- end.time - start.time
+time.taken
