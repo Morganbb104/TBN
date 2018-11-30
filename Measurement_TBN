@@ -1,0 +1,101 @@
+# load packages
+
+library(tidyverse)
+library(data.table)
+library(magrittr)
+library(reshape2)
+
+
+# set workspace
+setwd("c:/Users/user/Dropbox/特生中心/R/EVENT_OCC/")
+
+
+# load raw data
+R_bird <- fread("taipei_riparian_bird.txt",
+                sep = "\t") %>% as.tibble()
+
+names(R_bird)
+View(R_bird)
+
+# add new columns
+R_bird <-
+  R_bird %>% mutate(eventID1 = paste0(`樣區編號`, "_", `樣點編號`, "_", `調查旅次\n編號`))
+
+R_bird <-
+  R_bird %>% mutate(parenteventID1 = paste0(`樣區編號`, "_", `樣點編號`, "_", `調查旅次\n編號`))
+
+R_bird <- R_bird %>% mutate(occ_id = row_number())
+
+R_bird <-
+  R_bird %>% mutate(OccurrenceID = paste0("Occurrence","_",occ_id))
+
+R_bird <-
+  R_bird %>% mutate(measurementType = '測量對象')
+R_bird <-
+  R_bird %>% mutate(measurementValue = '測量對象')
+
+# make output form
+# make occurence sheet
+#occ.v2 <- occ.v2 %>% mutate(measurementID = row_number())
+
+occ1 <- R_bird %>% transmute(eventID.new = paste(eventID1, OccurrenceID, sep = "_"),
+                             parenteventID = paste(parenteventID1),
+                             measurementID = paste("measurement",eventID.new, sep = "_"),
+                             距離 = 距離,
+                             時段 = 時段,
+                             天氣 = 天氣代號,
+                             風速 = 風速代號,
+                             結群 = 結群,
+                             堤內_外 = `堤內/外`,
+                             觀察狀態 = 觀察狀態,
+                             量測對象 = OccurrenceID
+)     
+
+
+
+View(occ1)
+# class(t(occ1))
+# occ1_df <- as.data.frame(t(occ1), stringsAsFactors = FALSE)
+# str(occ1_df)
+# names(occ1_df) <- occ1_df[1,]
+#row.names(occ.v2)
+
+occ2 <- 
+  melt(occ1, 
+       id = c("eventID.new","parenteventID","measurementID"),
+       measure = c("距離", 
+                   "時段",
+                   "量測對象",
+                   "天氣",
+                   "風速",
+                   "結群",
+                   "觀察狀態",
+                   "堤內_外")
+  ) %>% 
+  setnames(c("variable", "value"),
+           c("measurmentType", "measurementValue"))
+
+
+
+str(occ2)
+View(occ2)
+
+#put measureremark and unit,match all contents together
+occ2 <- occ2 %>% mutate(measurementUnit = "",measurementRemark = "",samplingProtocal = "" )
+
+df <- data.frame(
+  measurmentType = c("距離", "時段", "量測對象", "天氣", "風速", "結群", "觀察狀態","堤內_外"),
+  measurementUnit = c("m","時段","鳥類個體","天氣","小時/h","群","狀態","內外"),
+  measurementRemark=c("1","2","3","4","5","6","7","8"),
+  samplingProtocal=c("1_1","2_1","針對Occurrence中的生物進行量測","4_1","5_1","6_1","7_1","8_1")
+)
+occ2$measurementUnit <- df$measurementUnit[match(occ2$measurmentType,df$measurmentType)]
+occ2$measurementRemark <- df$measurementRemark[match(occ2$measurmentType,df$measurmentType)]
+occ2$samplingProtocal <- df$samplingProtocal[match(occ2$measurmentType,df$measurmentType)]
+
+View(occ2)
+#https://stackoverflow.com/questions/16453452/how-can-i-add-rows-to-an-r-data-frame-every-other-row
+#https://stackoverflow.com/questions/33374284/how-can-i-get-mean-of-every-n-rows-and-keep-the-date-index
+
+# output *.xlsx  
+writexl::write_xlsx(x = occ2, path = paste0("MoF_",format(Sys.Date(),"%Y%m%d"),".xlsx"))
