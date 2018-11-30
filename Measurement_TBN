@@ -38,9 +38,9 @@ R_bird <-
 # make occurence sheet
 #occ.v2 <- occ.v2 %>% mutate(measurementID = row_number())
 
-occ1 <- R_bird %>% transmute(eventID.new = paste(eventID1, OccurrenceID, sep = "_"),
+occ1 <- R_bird %>% transmute(eventIDnew = paste(eventID1, OccurrenceID, sep = "_"),
                              parenteventID = paste(parenteventID1),
-                             measurementID = paste("measurement",eventID.new, sep = "_"),
+                             measurementID = paste("measurement",eventIDnew, sep = "_"),
                              距離 = 距離,
                              時段 = 時段,
                              天氣 = 天氣代號,
@@ -62,7 +62,7 @@ View(occ1)
 
 occ2 <- 
   melt(occ1, 
-       id = c("eventID.new","parenteventID","measurementID"),
+       id = c("eventIDnew","parenteventID","measurementID"),
        measure = c("距離", 
                    "時段",
                    "量測對象",
@@ -85,7 +85,7 @@ occ2 <- occ2 %>% mutate(measurementUnit = "",measurementRemark = "",samplingProt
 
 df <- data.frame(
   measurmentType = c("距離", "時段", "量測對象", "天氣", "風速", "結群", "觀察狀態","堤內_外"),
-  measurementUnit = c("m","時段","鳥類個體","天氣","小時/h","群","狀態","內外"),
+  measurementUnit = c("meter","時段","鳥類個體","天氣","小時/h","群","狀態","內外"),
   measurementRemark=c("1","2","3","4","5","6","7","8"),
   samplingProtocal=c("1_1","2_1","針對Occurrence中的生物進行量測","4_1","5_1","6_1","7_1","8_1")
 )
@@ -99,3 +99,4 @@ View(occ2)
 
 # output *.xlsx  
 writexl::write_xlsx(x = occ2, path = paste0("MoF_",format(Sys.Date(),"%Y%m%d"),".xlsx"))
+
