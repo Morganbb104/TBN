@@ -17,6 +17,10 @@ R_bird <- fread("taipei_riparian_bird.txt",
 names(R_bird)
 View(R_bird)
 
+#clean data,use unique() to check every columns ,replace wrong value as ""
+unique(R_bird$距離)
+R_bird[R_bird == "?"] <-""   #replace "?" as ""
+unique(R_bird$距離)
 # add new columns
 R_bird <-
   R_bird %>% mutate(eventID1 = paste0(`樣區編號`, "_", `樣點編號`, "_", `調查旅次\n編號`))
@@ -56,7 +60,6 @@ occ1 <- R_bird %>% transmute(eventIDnew = paste(eventID1, OccurrenceID, sep = "_
 View(occ1)
 # class(t(occ1))
 # occ1_df <- as.data.frame(t(occ1), stringsAsFactors = FALSE)
-# str(occ1_df)
 # names(occ1_df) <- occ1_df[1,]
 #row.names(occ.v2)
 
@@ -99,4 +102,3 @@ View(occ2)
 
 # output *.xlsx  
 writexl::write_xlsx(x = occ2, path = paste0("MoF_",format(Sys.Date(),"%Y%m%d"),".xlsx"))
-
